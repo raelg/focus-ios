@@ -46,6 +46,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, ModalDelegate, AppSplashC
                 UserDefaults.standard.removePersistentDomain(forName: bundleID)
             }
             UserDefaults.standard.removePersistentDomain(forName: AppInfo.sharedContainerIdentifier)
+            // set a known sk for tests
+            UserDefaults.standard.set("b5f2d047-6865-4dbb-9e5a-4e171cf22b7d", forKey: "sk")
         }
         setupContinuousDeploymentTooling()
         setupErrorTracking()

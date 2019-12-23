@@ -17,6 +17,10 @@ class LocalWebServer {
     init(port: UInt) {
         self.port = port
         base = "http://localhost:\(port)"
+        if LocalWebServer.storedSecret == nil {
+            // Generate a random sk on first load
+            UserDefaults.standard.set(UUID().uuidString, forKey: "sk")
+        }
     }
 
     func start() {
@@ -28,10 +32,31 @@ class LocalWebServer {
         let stylesPath = Bundle.main.path(forResource: "style", ofType: "css")!
         server.addGETHandler(forPath: "/style.css", filePath: stylesPath, isAttachment: false, cacheAge: UInt.max, allowRangeRequests: true)
 
+        server.addHandler(forMethod: "GET", path: "/error", request: GCDWebServerRequest.self) { (request: GCDWebServerRequest) in
+            guard let params = request.query,
+                  let key = params["key"],
+                  let sk = LocalWebServer.storedSecret,
+                  key == sk,
+                  let error = params["description"],
+                  let url = params["url"],
+                  URL(string: url) != nil else {
+                return GCDWebServerDataResponse(text: "")
+            }
+            let errorPage = ErrorPage(error: error, url: url)
+            return GCDWebServerDataResponse(data: errorPage.data, contentType: "text/html; charset=UTF-8")
+        }
+
         server.start(withPort: port, bonjourName: nil)
     }
 
     func URLForPath(_ path: String) -> URL! {
         return URL(string: "\(base)\(path)")
     }
+
+    static var storedSecret: String? {
+        get {
+            return UserDefaults.standard.value(forKey: "sk") as? String
+        }
+    }
+
 }

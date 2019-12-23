@@ -49,9 +49,19 @@
         text-align: left;
       }
     </style>
+    <script type="application/javascript" >
+      function reload() {
+        let url = "%url%";
+        if (url && url.length > 0 && !url.startsWith("%url")) {
+          window.location.href = url;
+        } else {
+          window.location.reload();
+        }
+      }
+    </script>
   </head>
   <body>
     <div class="message long">%messageLong%</div>
-    <button onclick="window.location.reload()">%button%</div>
+    <button onclick="reload()">%button%</button>
   </body>
 </html>
