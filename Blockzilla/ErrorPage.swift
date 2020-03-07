@@ -5,18 +5,26 @@
 import Foundation
 
 class ErrorPage {
-    let error: NSError
+    let error: String
+    let url: String?
 
-    init(error: Error) {
-        self.error = error as NSError
+    init(error: String, url: String? = nil) {
+        self.error = error
+        self.url = url
     }
 
     var data: Data {
         let file = Bundle.main.path(forResource: "errorPage", ofType: "html")!
 
         let page = try! String(contentsOfFile: file)
-            .replacingOccurrences(of: "%messageLong%", with: error.localizedDescription)
+            .replacingOccurrences(of: "%messageLong%", with: error)
             .replacingOccurrences(of: "%button%", with: UIConstants.strings.errorTryAgain)
+
+        if let errorUrl = url {
+            return page.replacingOccurrences(of: "%url%", with: errorUrl).data(using: .utf8)!
+        }
+
         return page.data(using: .utf8)!
     }
+
 }

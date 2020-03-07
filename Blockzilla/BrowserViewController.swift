@@ -43,6 +43,7 @@ class BrowserViewController: UIViewController {
     private var lastScrollTranslation = CGPoint.zero
     private var scrollBarOffsetAlpha: CGFloat = 0
     private var scrollBarState: URLBarScrollState = .expanded
+    private let errorHandler: URL = LocalWebServer.sharedInstance.URLForPath("/error")
 
     private enum URLBarScrollState {
         case collapsed
@@ -695,7 +696,13 @@ class BrowserViewController: UIViewController {
     }
 
     func updateURLBar() {
-        if webViewController.url?.absoluteString != "about:blank" {
+        if webViewController.url?.absoluteString.starts(with: errorHandler.absoluteString) == true,
+           let key = webViewController.url?.getQuery()["key"], key == LocalWebServer.storedSecret,
+           let url = webViewController.url?.getQuery()["url"]?.removingPercentEncoding,
+           let errorUrl = URL(string: url) {
+            urlBar.url = errorUrl
+            overlayView.currentURL = urlBar.url?.absoluteString ?? ""
+        } else if webViewController.url?.absoluteString != "about:blank" {
             urlBar.url = webViewController.url
             overlayView.currentURL = urlBar.url?.absoluteString ?? ""
         }
@@ -1022,6 +1029,10 @@ extension BrowserViewController: BrowserToolsetDelegate {
         let actions: [[PhotonActionSheetItem]] = history.map { item in
             if let title = item.title, !title.isEmpty {
                 return PhotonActionSheetItem(title: "\(title) - \(item.url.absoluteString)", adjustsFontSizeToFitWidth: false) { action in
+                    self.webViewController.go(to: item)
+                }
+            } else if item.url.absoluteString.starts(with: errorHandler.absoluteString), let description = item.url.getQuery()["description"]?.removingPercentEncoding {
+                return PhotonActionSheetItem(title: description, adjustsFontSizeToFitWidth: false) { action in
                     self.webViewController.go(to: item)
                 }
             }

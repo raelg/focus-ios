@@ -171,7 +171,7 @@ class SettingsContentViewController: UIViewController, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         SELdidTimeOut()
-        let errorPageData = ErrorPage(error: error).data
+        let errorPageData = ErrorPage(error: error.localizedDescription).data
         webView.load(errorPageData, mimeType: "", characterEncodingName: "", baseURL: url)
     }
 
